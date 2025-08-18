@@ -216,4 +216,4 @@ function writeOfflineHistory(data) {
    deleteAllHistory,
    shareHistory,
    
- };cls
+ };
