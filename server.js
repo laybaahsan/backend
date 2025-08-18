@@ -78,6 +78,11 @@ app.use('/api-docs',swaggerRoutes);
 
 connectDB();
 
+// --- sample route ---
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, message: 'Backend is live!' });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {console.log(`Server running on port ${PORT}`)
 
@@ -86,7 +91,7 @@ app.listen(PORT, () => {console.log(`Server running on port ${PORT}`)
 
 
 
-
+module.exports = app;
 
 
 
