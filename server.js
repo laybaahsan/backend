@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const cookieParser=require('cookie-parser');
 const session = require('express-session');
-const passport= require('passport');
+
 
 //import DB connection
 const connectDB = require('./config/db');
@@ -91,7 +91,7 @@ app.listen(PORT, () => {console.log(`Server running on port ${PORT}`)
 
 
 
-module.exports = app;
+// module.exports = app;
 
 
 
