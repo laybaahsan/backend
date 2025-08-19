@@ -25,6 +25,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.static("public"));
+
 //JSON and URL parsing
 app.use(express.json( {
   strict :true,
@@ -65,8 +66,6 @@ app.get('/', (req, res) => res.send('Welcome to MedScan!'));
 
 // Define User Routes
 app.use('/user', userRoutes);
-
-
 app.use('/medicine', medicineRoutes);
 app.use('/ocr', medicineRoutes);
 app.use('/barcode', medicineRoutes);
@@ -76,20 +75,34 @@ app.use('/admin',adminRoutes);
 app.use('/api-docs',swaggerRoutes);
 
 
-connectDB();
-
 // --- sample route ---
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'Backend is live!' });
 });
 
+connectDB();
+
+// Error handlers (must be after routes)
+app.use((req, res) => {
+  res.status(404).send('Not Found');
+});
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something went wrong!');
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {console.log(`Server running on port ${PORT}`)
+// app.listen(PORT, () => {console.log(`Server running on port ${PORT}`)
 
+// }
+// );
+
+if(process.env.NODE_ENV !=='production');{
+  app.listen(PORT,()=>{
+    console.log(`Server is running on port ${PORT}`);
+  })
 }
-);
-
-
+//export for vercel
  module.exports = app;
 
 
