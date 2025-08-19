@@ -1,7 +1,6 @@
 const dotenv=require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const cookieParser=require('cookie-parser');
@@ -22,9 +21,20 @@ const swaggerRoutes = require ('./routes/swagger');
 // Initialize express app
 const app = express();
 
-// ===========================Middleware================================//
+const cors = require('cors');
+const  allowedOrigins = [
+  process.env.FRONTEND_URL,
 
-app.use(cors());
+  'http://localhost:3000',
+];
+
+app.use(cors({
+origin :function (origin, cb){
+  if(!origin) return cb(null , true); 
+  return cb ( null , allowedOrigins.includes(origin));
+} ,
+credentials :true, // needed  for cookies
+}));
 app.use(express.static("public"));
 
 //JSON and URL parsing
