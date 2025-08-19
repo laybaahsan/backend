@@ -76,7 +76,7 @@ app.use('/api-docs',swaggerRoutes);
 
 
 // --- sample route ---
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ ok: true, message: 'Backend is live!' });
 });
 
