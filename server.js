@@ -94,26 +94,22 @@ app.get('/health', (req, res) => {
 // Non-blocking database connection
 connectDB().catch(err => console.error('Database connection error:', err));
 
-// Error handlers (must be after routes)
-app.use((req, res) => {
-  res.status(404).send('Not Found');
-});
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something went wrong!');
-});
+// // Error handlers 
+// app.use((req, res) => {
+//   res.status(404).send('Not Found');
+// });
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).send('Something went wrong!');
+// });
 
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
 // app.listen(PORT, () => {console.log(`Server running on port ${PORT}`)
 
 // }
 // );
 
-// if(process.env.NODE_ENV !=='production');{
-//   app.listen(PORT,()=>{
-//     console.log(`Server is running on port ${PORT}`);
-//   })
-//}
+
 //export for vercel
  module.exports = app;
 
