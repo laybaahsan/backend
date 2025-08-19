@@ -80,7 +80,8 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'Backend is live!' });
 });
 
-connectDB();
+// Non-blocking database connection
+connectDB().catch(err => console.error('Database connection error:', err));
 
 // Error handlers (must be after routes)
 app.use((req, res) => {
