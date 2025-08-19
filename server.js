@@ -16,7 +16,7 @@ const medicineRoutes = require('./routes/medicine');
 const historyRoutes = require('./routes/history');
 const forgetPasswordRoutes=require('./routes/forgetPassword');
 const adminRoutes = require('./routes/admin');
-const swaggerRoutes = require ('./routes/swagger');
+
 
 // Initialize express app
 const app = express();
@@ -83,7 +83,7 @@ app.use('/barcode', medicineRoutes);
 app.use('/history', historyRoutes);
 app.use('/forgetPassword',forgetPasswordRoutes);
 app.use('/admin',adminRoutes);
-app.use('/api-docs',swaggerRoutes);
+
 
 
 // --- sample route ---
