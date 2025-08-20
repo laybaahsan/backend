@@ -3,7 +3,7 @@ const path = require('path');
 const fs =require('fs');
 const filePath = path.join(__dirname, '../offlineHistory.json');
 
-// controllers/history.js me
+//save history
 const saveHistory = async (req, res) => {
   try {
     if (!req.user || req.user.role === 'visitor') {
@@ -11,23 +11,25 @@ const saveHistory = async (req, res) => {
     }
 
     const {searchTerm, searchType, medicine } = req.body;
-    if(! medicine._id || !medicine ){
-    
-       const offlineHistory = readOfflineHistory();
+
+//offline save if med not found
+    if(! medicine || !medicine._id ){
+      const offlineHistory = readOfflineHistory();
       const newOffline = {
         _id: Date.now().toString(), // unique id
         userId: req.user._id,
         searchTerm,
         type: searchType,
         medicineName: medicine?.name || "Unknown",
-        timestamp: new Date()
+        timestamp: new Date().toISOString(),
       };
+
       offlineHistory.push(newOffline);
       writeOfflineHistory(offlineHistory);
       return res.status(201).json({ message: "History saved offline", history: newOffline });
     }
 
-
+//online save
     const newHistory = new History({
       email: req.user.email,
       userId: req.user._id,
@@ -48,12 +50,11 @@ const saveHistory = async (req, res) => {
       expiryDate: medicine.expiryDate || null,
       result:JSON.stringify(medicine) ,//save med detail as json string
       timestamp: new Date()
-      }
-    
-    );
-        await newHistory.save();
+      });
 
-    res.status(201).json({ message: 'History saved', history: newHistory });
+        await newHistory.save();
+       res.status(201).json({ message: 'History saved', history: newHistory });
+
   } catch (err) {
     console.error('Save History Error:', err);
     res.status(500).json({ error: 'Failed to save history' });
@@ -67,20 +68,17 @@ const saveHistory = async (req, res) => {
     if (!req.user || req.user.role==='visitor') {
             return res.status(403).send("Visitors cannot view history");
         }
+
         //get online
  const history = await History.find({ email:req.user.email })
      .populate("medicineId", 'name description barcode')
      .sort({ timestamp: -1 });
 
-//  if (!history || history.length === 0) {
-//       return res.status(404).send("No history found");
-//    }
    if(history && history.length >0){
-    return res.render('history',{history});
+    return res.json({history});
    }
 
-        // Render view for server-side rendering
-  //  res.render("history", { history }); // Pass history array
+  
   // Agar DB empty hai to offline history dikhao
     const offlineHistory = readOfflineHistory();
     if (offlineHistory.length === 0) {
@@ -88,6 +86,7 @@ const saveHistory = async (req, res) => {
     }
 
     return res.render("history", { history: offlineHistory });
+
     } catch (err) {
         console.error(err);
         res.status(500).send("Server error while fetching history");
@@ -96,25 +95,34 @@ const saveHistory = async (req, res) => {
  
 //=============================================================//
 // Delete a history item
+
 const deleteHistory = async (req, res) => {
   try {
     if (!req.user || req.user.role === 'visitor') {
       return res.status(403).json({ error: 'Visitors cannot access history' });
     }
+
+
 //try  DB delete
     const history = await History.findOneAndDelete({
-      _id: req.body.id,//_id: req.params.id,
-      userId: req.user._id, // Ensure user owns the history
+      _id: req.body.id,
+      userId: req.user._id, 
     });
+
     if (history) {
-      return res.status(404).json({ message: 'History deleted online' });
+      return res.status(200).json({ message: 'History deleted online' });
     }
+
     //agr db main nhi mila to offline delete
     let offlineHistory= readOfflineHistory();
     const newOffline = offlineHistory.filter(item => item._id !== req.body.id);
+
+
     if(newOffline.length === offlineHistory.length){
       return res.status(404).json({ message: 'History not found' });
     }
+
+
     writeOfflineHistory (newOffline);
     res.json({ message: 'History deleted offline' });
   } catch (err) {
@@ -127,17 +135,19 @@ const deleteHistory = async (req, res) => {
 
 //============================================================//
 // Delete all history for a user
- const deleteAllHistory = async (req, res) => {
+const deleteAllHistory = async (req, res) => {
   try {
     if (!req.user || req.user.role === 'visitor') {
       return res.status(403).json({ error: 'Visitors cannot access history' });
     }
+
     //online deleted
     await History.deleteMany({ userId: req.user._id });
    //offline
      writeOfflineHistory([]);
   res.json({ message: 'All history deleted (online + offline)' });
   }
+
   catch (err) {
     console.error('Delete All History Error',err.message);
     res.status(500).json({ message: 'Server error' });
@@ -151,14 +161,16 @@ const shareHistory = async (req, res) => {
     if (!req.user || req.user.role === 'visitor') {
       return res.status(403).json({ error: 'Visitors cannot access history' });
     }
+
     const { historyIds } = req.body; // Expect array of history IDs
     if (!historyIds|| !Array.isArray(historyIds) || historyIds.length === 0) {
       return res.status(400).json({ error: 'At least one history ID is required' });
     }
+
     const history = await History.find({
       _id: { $in: historyIds },
       userId: req.user._id,
-    }).populate('medicineId', 'name description');
+    }).populate('medicineId', 'name description genericName brand manufacturer formula dosage usageInstructions sideEffects contraindications prescriptionRequired expiryDate');
 
     if (!history || history.length === 0) {
       return res.status(404).json({ error: 'No history entries found' });
@@ -184,20 +196,20 @@ Prescription Required: ${med.prescriptionRequired ? 'Yes' : 'No'}
 Expiry Date: ${med.expiryDate ? new Date(med.expiryDate).toLocaleDateString() : 'N/A'}
 Searched Term: ${h.searchTerm || 'N/A'}
 Search Type: ${h.type || 'N/A'},
-result: ${JSON.stringify(medicine) || 'N/A'} ,
+result: ${JSON.stringify(h.medicineId) || 'N/A'} ,
 Searched On: ${h.timestamp ? new Date(h.timestamp).toLocaleDateString() : 'N/A'}
 `;
-}).join('\n---\n');
-res.json({ shareText: historyText });
+
+  }).join('\n---\n');
+
+  res.json({ shareText: historyText });
   } catch (err) {
     console.error('Share History Error:', err);
-    if (err.kind === 'ObjectId') {
-      return res.status(400).json({ error: 'Invalid history ID' });
-    }
     res.status(500).json({ error: 'Failed to prepare history for copying' });
   }
 };
 
+//offline Helpers
 // Local JSON File Offline History Helpers
 function readOfflineHistory() {
   if (!fs.existsSync(filePath)) return [];

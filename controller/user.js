@@ -4,16 +4,16 @@ const userModel = require('../models/user');
 
 // ---------- Helper: Generate JWT ----------
 
-// const generateToken = (user) => {
-//   return jwt.sign(
-//     { id: user._id, email: user.email, role: user.role },
-//     process.env.JWT_SECRET || 'your-secure-secret-key-here',
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET || 'your-secure-secret-key-here',
    
 
-//     { expiresIn: '1d' } // signup = 1 day, login = 1h (you can adjust)
-//   );
+    { expiresIn: '1d' } // signup = 1 day, login = 1h (you can adjust)
+  );
   
-// };
+};
 
 //render pages
 
@@ -31,7 +31,7 @@ const showLogin=(req,res)=>{
     res.render('login',{error:null});
 };
 
-//===========================Signup handler=======================//
+//==========Signup handler=============//
 
 const signup = async (req,res)=>{
     try{
@@ -46,7 +46,7 @@ const signup = async (req,res)=>{
     : res.status(400) .render('signup',{error});
 
  
-     }
+  };
 
        // 2.check if user already exists
 
@@ -57,7 +57,7 @@ const signup = async (req,res)=>{
       return req.accepts('json')
         ? res.status(400).json({ error })
         : res.status(400).render('signup', { error });
-    }
+    };
 
   // hashed  apssword
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -76,31 +76,29 @@ const signup = async (req,res)=>{
        role : userRole,
     }
       );
-console.log("User saved in DB:", createdUser);
+    console.log("User saved in DB:", createdUser);
 
     //5. Generate JWT token
-    // const token = generateToken(createdUser);
-    const token=jwt.sign({email:email,id:createdUser.id},
-      process.env.JWT_SECRET||'your-secure-secret-key-here');
-    res.cookie("token",token);
-    
-    
-   // 6 Respond differently based on request type
+   const token = generateToken(createdUser);
 
-        if( req.accepts('json')){
-         return res.status(201).json({
-          message: 'User Signup Successfully',
-          token,
-          user:{
-            id:createdUser ._id,//prperties
-            FirstName:createdUser.FirstName,
-            LastName:createdUser.LastName,
-            email:createdUser.email,
-            password:createdUser.password,
-            role: createdUser.role,
-         },
+    
+    
+   // 6 Responce
+
+  if( req.accepts('json')){
+    return res.status(201).json({
+      message: 'User Signup Successfully',
+      token,
+      user:{
+      id:createdUser ._id,//prperties
+      FirstName:createdUser.FirstName,
+      LastName:createdUser.LastName,
+      email:createdUser.email,
+      password:createdUser.password,
+      role: createdUser.role,
+    },
           
-        });
+ });
 
   } else 
     {
@@ -126,7 +124,7 @@ catch(err)
   }
  };
 
-//login handler
+//============login handler=============//
 const login = async (req, res) => {
    try {
      const { email, password } = req.body;
@@ -152,8 +150,7 @@ const login = async (req, res) => {
 
      //3. verify password
      const isMatch = await bcrypt.compare(password, user.password);//find password from user object
-   if (!isMatch)
-    { 
+     if (!isMatch) { 
 
     const error = 'Invalid credentials';
       return req.accepts('json')
@@ -162,12 +159,10 @@ const login = async (req, res) => {
     }
 
     //4 Generate token
-    //  const token = generateToken(user);
-const token = jwt.sign({ email: user.email, id: user.id },
-process.env.JWT_SECRET||'your-secure-secret-key-here');
-     res.cookie("token", token);
+     const token = generateToken(user);
+
    
-    // 5. Respond based on request type
+    // 5. Responce
 
     if (req.accepts('json')) {
       return res.status(200).json({
@@ -178,6 +173,7 @@ process.env.JWT_SECRET||'your-secure-secret-key-here');
         FirstName: user.FirstName,
         LastName:user.LastName, 
         email: user.email,
+        role : user.role
         },
     });
 
@@ -200,13 +196,17 @@ process.env.JWT_SECRET||'your-secure-secret-key-here');
   }
 };
 
-//===============================get profile=======================================//
+//==============get profile==============//
+
 const getProfile = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const user = await userModel.findById(req.user.id).select('-password');
     if (!user){
-      const error = 'User not found';
-      return res.status(400).json({error});
+      return res.status(400).json({error: 'User not found'});
     
   }
     res.json({
@@ -220,7 +220,7 @@ const getProfile = async (req, res) => {
   }
 };
 
-//================================logout handler=========================================//
+//==============logout handler================//
 const logout=(req,res)=>{
     res.clearCookie("token",{
       httpOnly:true,
@@ -231,7 +231,7 @@ const logout=(req,res)=>{
     if(req.accepts('json')){
       return res.status(200).json({message:'logged out successfully'});  
       }else{
-        return res.redirect("/user/signup");
+        return res.redirect("/user/login");
       }
 };
 
