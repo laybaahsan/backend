@@ -72,7 +72,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 
-app.get('/', (req, res) => res.send('Welcome to MedScan!'));
+app.get('/', (req, res) => res.send('Welcome to MedScan app with logo!'));
 
 
 // Define User Routes

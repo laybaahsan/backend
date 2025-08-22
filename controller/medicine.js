@@ -11,32 +11,6 @@ function isBodyEmpty(req) {
 }
 
 
-//  Helper Save history 
-async function saveHistory(req,searchType ,searchTerm , medicine){
-   if(req.user?._id && req.user.role !== 'visitor'){
-         try{
-           const history = await History.create({
-            userId  :req.user._id,
-            medicineId: medicine ?._id ||null,
-            searchType,
-            searchTerm: searchTerm || '',
-            createdAt:new Date()
-            
-        });
-        
-         console.log("History saved:", history);
-         
-    } catch(err) {
-      console.log('History save error', err);
-    }
-  } else {
-    console.log("User not logged in or role is visitor, history not saved");
-  
-     } 
-  }
-      
-
-
 
 // Manual Search
 const manualSearch = async (req, res) => {
@@ -53,7 +27,7 @@ const manualSearch = async (req, res) => {
     }
 
     await saveHistory(req, 'manual',name.trim(),medicine);
-return res.json(medicine);
+    return res.json(medicine);
 
 } catch (err) {
     console.error('Manual Search Error:', err);
@@ -129,7 +103,8 @@ const barcodeScan = async (req, res) => {
 
     } catch {
       return res.status(400).json({ error: 'No barcode detected' });
-    } finally {
+    } 
+    finally {
       reader.reset();
     }
   } catch (err) {
@@ -140,5 +115,53 @@ const barcodeScan = async (req, res) => {
 };
      
 
-module.exports = { manualSearch, scanMedicineImage, barcodeScan };
+// Add Medicine (Admin Only)
+const addMedicine = async (req, res) => {
+  try {
+    const medicine = new Medicine(req.body);
+    await medicine.save();
+    res.status(201).json(medicine);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Update Medicine (Admin Only)
+const updateMedicine = async (req, res) => {
+  try {
+    const medicine = await Medicine.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!medicine) return res.status(404).json({ message: "Medicine not found" });
+    res.json(medicine);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Delete Medicine (Admin Only)
+const deleteMedicine = async (req, res) => {
+  try {
+    const medicine = await Medicine.findByIdAndDelete(req.params.id);
+    if (!medicine) return res.status(404).json({ message: "Medicine not found" });
+    res.json({ message: "Medicine deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+
+
+// Get Medicines (For All)
+const getMedicines = async (req, res) => {
+  try {
+    const medicines = await Medicine.find();
+    res.json(medicines);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+module.exports = { manualSearch, scanMedicineImage, barcodeScan , addMedicine, updateMedicine, deleteMedicine, getMedicines};
 

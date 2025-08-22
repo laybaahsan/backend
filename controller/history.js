@@ -9,11 +9,40 @@ const saveHistory = async (req, res) => {
     if (!req.user || req.user.role === 'visitor') {
       return res.status(403).json({ error: 'Visitors cannot save history' });
     }
-
+ 
     const {searchTerm, searchType, medicine } = req.body;
 
+   if(! medicine || !medicine._id ){
+     const historyData = {
+        userId: req.user._id,
+        email: req.user.email,
+        searchTerm,
+        type: searchType,
+        searchQuery: searchTerm,
+        medicineId: medicine._id,
+        medicineName: medicine.name || 'Unknown',
+        genericName: medicine.genericName || 'N/A',
+        brand: medicine.brand || 'N/A',
+        manufacturer: medicine.manufacturer || 'N/A',
+        formula: medicine.formula || 'N/A',
+        dosage: medicine.dosage || 'N/A',
+        usageInstructions: medicine.usageInstructions || 'N/A',
+        sideEffects: medicine.sideEffects || 'N/A',
+        contraindications: medicine.contraindications || 'N/A',
+        prescriptionRequired: medicine.prescriptionRequired || false,
+        expiryDate: medicine.expiryDate || null,
+        description: medicine.description || 'No description available',
+        result: JSON.stringify(medicine),
+        timestamp: new Date()
+    };
+      
+
+     const newHistory = await History.create(historyData);
+      return res.status(201).json({ message: 'History saved', history: newHistory });
+    }
+
 //offline save if med not found
-    if(! medicine || !medicine._id ){
+   
       const offlineHistory = readOfflineHistory();
       const newOffline = {
         _id: Date.now().toString(), // unique id
@@ -29,33 +58,7 @@ const saveHistory = async (req, res) => {
       return res.status(201).json({ message: "History saved offline", history: newOffline });
     }
 
-//online save
-    const newHistory = new History({
-      email: req.user.email,
-      userId: req.user._id,
-      searchTerm,
-      type :searchType, 
-      searchQuery :searchTerm,  //store what user search       
-      medicineId :medicine._id,
-      medicineName: medicine.name || 'Unknown',
-      genericName: medicine.genericName || 'N/A',
-      brand: medicine.brand || 'N/A',
-      manufacturer: medicine.manufacturer || 'N/A',
-      formula: medicine.formula || 'N/A',
-      dosage: medicine.dosage || 'N/A',
-      usageInstructions: medicine.usageInstructions || 'N/A',
-      sideEffects: medicine.sideEffects || 'N/A',
-      contraindications: medicine.contraindications || 'N/A',
-      prescriptionRequired: medicine.prescriptionRequired || false,
-      expiryDate: medicine.expiryDate || null,
-      result:JSON.stringify(medicine) ,//save med detail as json string
-      timestamp: new Date()
-      });
-
-        await newHistory.save();
-       res.status(201).json({ message: 'History saved', history: newHistory });
-
-  } catch (err) {
+  catch (err) {
     console.error('Save History Error:', err);
     res.status(500).json({ error: 'Failed to save history' });
   }

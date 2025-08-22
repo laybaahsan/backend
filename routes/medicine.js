@@ -1,17 +1,22 @@
 const express = require('express');
+const {manualSearch,scanMedicineImage,barcodeScan,getMedicines, addMedicine, updateMedicine ,deleteMedicine} = require('../controller/medicine');
+const { validateSearch, validateImageData , isAuthenticated, restrictToAuthenticated, protect  } = require('../middleware/auth');
+const checkInternet = require ('../middleware/internet');
+const { adminOnly } = require("../middleware/admin");
+
 const router = express.Router();
 
- //const authMiddleware = require('../middleware/auth');
-const {manualSearch,scanMedicineImage,barcodeScan} = require('../controller/medicine');
-const { validateSearch, validateImageData , isAuthenticated, restrictToAuthenticated,  } = require('../middleware/auth');
-const checkInternet = require ('../middleware/internet');
-
+//both can see meds
+router.get("/",getMedicines );
 //manual /barcode / ocr  search routes 
 router.post('/manual', isAuthenticated,validateSearch,checkInternet, manualSearch); //basic manual
-// router.post('/search', isAuthenticated, validateSearch, manualSearch); // Manual search by name
 router.post('/scan-ocr', isAuthenticated, validateImageData, checkInternet,scanMedicineImage); // OCR scan
 router.post('/scan-barcode', isAuthenticated, validateImageData,checkInternet, barcodeScan); // Barcode scan
   
+// Sirf Admin ko add/update/delete ki permission
+router.post("/", protect, adminOnly, addMedicine);
+router.put("/:id", protect, adminOnly, updateMedicine);
+router.delete("/:id", protect, adminOnly, deleteMedicine);
 
 
 module.exports=router;
