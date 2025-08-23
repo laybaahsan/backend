@@ -96,45 +96,6 @@ const saveHistory = async (req, res) => {
     };
 };
  
-//=============================================================//
-// Delete a history item
-
-const deleteHistory = async (req, res) => {
-  try {
-    if (!req.user || req.user.role === 'visitor') {
-      return res.status(403).json({ error: 'Visitors cannot access history' });
-    }
-
-
-//try  DB delete
-    const history = await History.findOneAndDelete({
-      _id: req.body.id,
-      userId: req.user._id, 
-    });
-
-    if (history) {
-      return res.status(200).json({ message: 'History deleted online' });
-    }
-
-    //agr db main nhi mila to offline delete
-    let offlineHistory= readOfflineHistory();
-    const newOffline = offlineHistory.filter(item => item._id !== req.body.id);
-
-
-    if(newOffline.length === offlineHistory.length){
-      return res.status(404).json({ message: 'History not found' });
-    }
-
-
-    writeOfflineHistory (newOffline);
-    res.json({ message: 'History deleted offline' });
-  } catch (err) {
-    console.error('Deleted History Error ',err.message);
-
-    }
-    res.status(500).json({ message: 'Server error' });
-  };
-
 
 //============================================================//
 // Delete all history for a user
