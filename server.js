@@ -60,10 +60,6 @@ app.use(session({            //Session Management
 }));
 
 
-// //Passport authentication
-// app.use(passport.initialize());
-// app.use(passport.session());
-
 
 //================================ejs view engine==============================//
 

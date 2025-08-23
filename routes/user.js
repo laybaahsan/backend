@@ -1,5 +1,4 @@
 const express = require('express');
-const passport=require('passport');
 const router = express.Router();
 const userModel = require('../models/user');
 const { signup , login , logout , getProfile,showHome,showLogin,showSignup} = require('../controller/user');
