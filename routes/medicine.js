@@ -1,5 +1,5 @@
 const express = require('express');
-const {manualSearch,scanMedicineImage,barcodeScan,getMedicines, addMedicine, updateMedicine ,deleteMedicine} = require('../controller/medicine');
+const {manualSearch,scanMedicineImage,getMedicines, addMedicine, updateMedicine ,deleteMedicine} = require('../controller/medicine');
 const { validateSearch, validateImageData , isAuthenticated, restrictToAuthenticated, protect  } = require('../middleware/auth');
 const checkInternet = require ('../middleware/internet');
 const { adminOnly } = require("../middleware/admin");
@@ -8,10 +8,11 @@ const router = express.Router();
 
 //both can see meds
 router.get("/",getMedicines );
-//manual /barcode / ocr  search routes 
+
+
 router.post('/manual', isAuthenticated,validateSearch,checkInternet, manualSearch); //basic manual
 router.post('/scan-ocr', isAuthenticated, validateImageData, checkInternet,scanMedicineImage); // OCR scan
-router.post('/scan-barcode', isAuthenticated, validateImageData,checkInternet, barcodeScan); // Barcode scan
+
   
 // Sirf Admin ko add/update/delete ki permission
 router.post("/", protect, adminOnly, addMedicine);

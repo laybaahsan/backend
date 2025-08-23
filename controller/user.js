@@ -10,7 +10,7 @@ const generateToken = (user) => {
     process.env.JWT_SECRET || 'your-secure-secret-key-here',
    
 
-    { expiresIn: '1d' } // signup = 1 day, login = 1h (you can adjust)
+    { expiresIn: '1d' } 
   );
   
 };
@@ -251,21 +251,3 @@ module.exports = {
 
 
 
-
-// {
-//   "searchTerm": "Paracetamol",
-//   "type": "manual",
-//   "medicineData": {
-//     "name": "Paracetamol",
-//     "genericName": "Acetaminophen",
-//     "brand": "Panadol",
-//     "manufacturer": "GSK",
-//     "formula": "C8H9NO2",
-//     "dosage": "500mg",
-//     "usageInstructions": "Take 1 tablet every 6 hours",
-//     "sideEffects": "Nausea, liver damage (overdose)",
-//     "contraindications": "Liver disease",
-//     "prescriptionRequired": false,
-//     "expiryDate": "2025-12-31"
-//   }
-// }

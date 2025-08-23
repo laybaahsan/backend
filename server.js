@@ -79,7 +79,6 @@ app.get('/', (req, res) => res.send('Welcome to MedScan app with logo!'));
 app.use('/user', userRoutes);
 app.use('/medicine', medicineRoutes);
 app.use('/ocr', medicineRoutes);
-app.use('/barcode', medicineRoutes);
 app.use('/history', historyRoutes);
 app.use('/forgetPassword',forgetPasswordRoutes);
 app.use('/admin',adminRoutes);
@@ -93,21 +92,6 @@ app.get('/health', (req, res) => {
 
 // Non-blocking database connection
 connectDB().catch(err => console.error('Database connection error:', err));
-
-// // Error handlers 
-// app.use((req, res) => {
-//   res.status(404).send('Not Found');
-// });
-// app.use((err, req, res, next) => {
-//   console.error(err.stack);
-//   res.status(500).send('Something went wrong!');
-// });
-
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {console.log(`Server running on port ${PORT}`)
-
-// }
-// );
 
 
 //export for vercel

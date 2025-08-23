@@ -71,48 +71,6 @@ const scanMedicineImage = async (req, res) => {
 };
 
 
-// Barcode Scan
-const barcodeScan = async (req, res) => {
-  try {
-     if (isBodyEmpty(req)) {
-      return res.status(400).json({ error: 'Request body is missing' });
-    }
-    
-    const { imageData } = req.body;
-   if( !imageData || typeof imageData !== 'string'){
-      return res.status(400).json({ error: 'Valid barcode image data is required' });
-    }
-
-
-    const buffer = Buffer.from(imageData.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-    const reader = new BrowserMultiFormatReader();
-
-
-    try {
-      const result = await reader.decodeFromBuffer(buffer);
-      const barcode = result.getText();
-
-      const medicine = await Medicine.findOne({ barcode });
-      if (!medicine) {
-        return res.status(404).json({ error: 'Medicine not found' });
-      }
-
-      
-      await saveHistory(req, 'barcodeScan',barcode,medicine);
-      return res.json(medicine);
-
-    } catch {
-      return res.status(400).json({ error: 'No barcode detected' });
-    } 
-    finally {
-      reader.reset();
-    }
-  } catch (err) {
-    console.error('Barcode Scan Error:', err);
-    const error = 'Something went wrong during Barcode search';
-    return res.status(500).json({error:'Barcode search failed'});
-  }
-};
      
 
 // Add Medicine (Admin Only)
@@ -163,5 +121,5 @@ const getMedicines = async (req, res) => {
 
 
 
-module.exports = { manualSearch, scanMedicineImage, barcodeScan , addMedicine, updateMedicine, deleteMedicine, getMedicines};
+module.exports = { manualSearch, scanMedicineImage , addMedicine, updateMedicine, deleteMedicine, getMedicines};
 
