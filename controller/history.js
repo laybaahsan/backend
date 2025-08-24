@@ -188,7 +188,6 @@ function writeOfflineHistory(data) {
  {
    saveHistory,
    getHistory,
-   deleteHistory,
    deleteAllHistory,
    shareHistory,
    

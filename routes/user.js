@@ -15,10 +15,6 @@ console.log({ signup, login, getProfile, logout });
 router.get('/signup', showSignup); // Render signup page
 router.get('/login', showLogin); // Render login page
 router.get('/home',showHome);
-//goole login
-router.get('/google',
-    passport.authenticate('google',{scope: ['profile', 'email'] } )
-);
 
       
 
