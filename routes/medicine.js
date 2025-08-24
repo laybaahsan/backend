@@ -7,7 +7,7 @@ const checkInternet = require ('../middleware/internet');
 const router = express.Router();
 
 //both can see meds
-router.get("/",getMedicines );
+router.get("/", isAuthenticated,getMedicines );
 
 
 router.post('/manual', isAuthenticated,validateSearch,checkInternet, manualSearch); //basic manual

@@ -79,9 +79,12 @@ const scanMedicineImage = async (req, res) => {
     return res.status(500).json({ error: 'OCR search failed' });
   }
 };
+
+
   const getMedicines = async (req,res)=>{
-     try {
-    res.json({ message: "All medicines fetched successfully!" });
+    try {
+    const medicines = await Medicine.find();
+    res.json({ success: true, data: medicines });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
