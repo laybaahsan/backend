@@ -59,7 +59,7 @@ app.use(express.json( {
 app.use(express.urlencoded({ extended: true , limit :'50mb' }));
 app.use(cookieParser());
 app.use(session({            //Session Management
-  secret: process.env.SESSION_SECRET|| 'session-secret', // Use env variable
+  secret: process.env.SESSION_SECRET, // Use env variable
   resave: false,
   saveUninitialized: false,
   cookie: { secure: process.env.NODE_ENV === 'production' } //  HTTPS for production
@@ -74,7 +74,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 
-app.get('/', (req, res) => res.send('Welcome to MedScan app with logo!'));
+app.get('/', (req, res) => res.send('Welcome to MedScan App '));
 
 
 // Define User Routes

@@ -57,7 +57,7 @@ const scanMedicineImage = async (req, res) => {
     // Use Tesseract worker
     const worker = await Tesseract.createWorker();
     await worker.loadLanguage('eng');
-    await worker.initialize('eng');
+    await worker.reinitialize('eng');
     const { data: { text } } = await worker.recognize(buffer);
     await worker.terminate();
 
