@@ -1,5 +1,5 @@
 const Medicine = require('../models/medicine');
-const { saveHistory } = require('./historyController'); // Correct import
+const { saveHistory } = require('./history'); // Correct import
 const Tesseract = require('tesseract.js');
 
 // Helper: Check if request body is empty
@@ -79,3 +79,18 @@ const scanMedicineImage = async (req, res) => {
     return res.status(500).json({ error: 'OCR search failed' });
   }
 };
+  const getMedicines = async (req,res)=>{
+     try {
+    res.json({ message: "All medicines fetched successfully!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+  };
+
+
+
+module.exports ={
+  scanMedicineImage ,
+  manualSearch ,
+  getMedicines
+}
