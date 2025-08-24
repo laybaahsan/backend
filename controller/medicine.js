@@ -1,125 +1,81 @@
 const Medicine = require('../models/medicine');
-const History = require('../models/history');
+const { saveHistory } = require('./historyController'); // Correct import
 const Tesseract = require('tesseract.js');
-const { BrowserMultiFormatReader } = require('@zxing/library');
 
-
-
-//Helper: Check if request body is empty
+// Helper: Check if request body is empty
 function isBodyEmpty(req) {
   return !req.body || Object.keys(req.body).length === 0;
 }
 
-
+// Escape special regex characters in user input
+function escapeRegex(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // Manual Search
 const manualSearch = async (req, res) => {
   try {
-
     const { name } = req.body;
+
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return res.status(400).json({ error: 'Medicine name is required and must be a non-empty string' });
     }
 
-    const medicine = await Medicine.findOne({ name: new RegExp(name.trim(), 'i') });
-     if (!medicine) {
+    const safeName = escapeRegex(name.trim());
+    const medicine = await Medicine.findOne({ name: new RegExp(`^${safeName}$`, 'i') });
+
+    if (!medicine) {
       return res.status(404).json({ error: 'Medicine not found' });
     }
 
-    await saveHistory(req, 'manual',name.trim(),medicine);
+    // Save history (reusing your historyController)
+    await saveHistory({ user: req.user, body: { searchTerm: name.trim(), searchType: 'manual', medicine } });
+
     return res.json(medicine);
 
-} catch (err) {
+  } catch (err) {
     console.error('Manual Search Error:', err);
     return res.status(500).json({ error: 'Server error' });
-   
   }
 };
-
 
 // OCR Scan
 const scanMedicineImage = async (req, res) => {
   try {
-     if (isBodyEmpty(req)) {
+    if (isBodyEmpty(req)) {
       return res.status(400).json({ error: 'Request body is missing' });
     }
-    
+
     const { imageData } = req.body;
     if (!imageData || typeof imageData !== 'string') {
       return res.status(400).json({ error: 'Valid image data is required' });
     }
 
+    // Convert base64 to buffer
     const buffer = Buffer.from(imageData.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-    const result = await Tesseract.recognize(buffer, 'eng');
-    const extractedText = result.data.text.toLowerCase().trim();
 
-    if (!extractedText) {
-      return res.status(400).json({ error: 'No text detected in image' });
-    }
+    // Use Tesseract worker
+    const worker = await Tesseract.createWorker();
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    const { data: { text } } = await worker.recognize(buffer);
+    await worker.terminate();
 
-    const firstLine = extractedText.split('\n').map(line => line.trim()).filter(Boolean)[0];//First non-empty line
-    const medicine = await Medicine.findOne({ name: new RegExp(firstLine || extractedText, 'i') });
+    const extractedText = text.toLowerCase().trim();
+    if (!extractedText) return res.status(400).json({ error: 'No text detected in image' });
 
+    const firstLine = extractedText.split('\n').map(line => line.trim()).filter(Boolean)[0];
+    const safeText = escapeRegex(firstLine || extractedText);
 
-    await saveHistory(req, 'ocr',extractedText, medicine);
-    return res.json(medicine || {name :'Unknown' , description:' No description found'});
+    const medicine = await Medicine.findOne({ name: new RegExp(`^${safeText}$`, 'i') });
 
-  }catch (err) {
+    // Save history
+    await saveHistory({ user: req.user, body: { searchTerm: extractedText, searchType: 'ocr', medicine } });
+
+    return res.json(medicine || { name: 'Unknown', description: 'No description found' });
+
+  } catch (err) {
     console.error('OCR Scan Error:', err);
-   return res.status(500).json({error:'OCR search failed'});
-   }
-};
-
-
-     
-
-// Add Medicine (Admin Only)
-const addMedicine = async (req, res) => {
-  try {
-    const medicine = new Medicine(req.body);
-    await medicine.save();
-    res.status(201).json(medicine);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    return res.status(500).json({ error: 'OCR search failed' });
   }
 };
-
-// Update Medicine (Admin Only)
-const updateMedicine = async (req, res) => {
-  try {
-    const medicine = await Medicine.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!medicine) return res.status(404).json({ message: "Medicine not found" });
-    res.json(medicine);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// Delete Medicine (Admin Only)
-const deleteMedicine = async (req, res) => {
-  try {
-    const medicine = await Medicine.findByIdAndDelete(req.params.id);
-    if (!medicine) return res.status(404).json({ message: "Medicine not found" });
-    res.json({ message: "Medicine deleted successfully" });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-
-
-// Get Medicines (For All)
-const getMedicines = async (req, res) => {
-  try {
-    const medicines = await Medicine.find();
-    res.json(medicines);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
-
-
-module.exports = { manualSearch, scanMedicineImage , addMedicine, updateMedicine, deleteMedicine, getMedicines};
-

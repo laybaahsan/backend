@@ -7,7 +7,7 @@ const userModel = require('../models/user');
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, role: user.role },
-    process.env.JWT_SECRET || 'your-secure-secret-key-here',
+    process.env.JWT_SECRET ,
    
 
     { expiresIn: '1d' } 
@@ -18,7 +18,7 @@ const generateToken = (user) => {
 //render pages
 
 const showHome=( req , res) =>{
-  const isAuthenticated= !req.user&& req.user.role !=='visitor';
+  const isAuthenticated= req.user&& req.user.role !=='visitor';
   res.render('home',{isAuthenticated, error : null});
 };
 
@@ -184,7 +184,8 @@ const login = async (req, res) => {
        sameSite : 'strict'   ,
        maxAge : 60 * 60 * 1000 ,       //1 hr
     });
-      return res.redirect("/home");
+     router.get('/home', showHome);
+
     }
 
    }catch (err) {

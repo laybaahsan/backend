@@ -15,7 +15,7 @@ const userRoutes = require('./routes/user');
 const medicineRoutes = require('./routes/medicine');
 const historyRoutes = require('./routes/history');
 const forgetPasswordRoutes=require('./routes/forgetPassword');
-const adminRoutes = require('./routes/admin');
+
 
 
 // Initialize express app
@@ -24,17 +24,23 @@ const app = express();
 const cors = require('cors');
 const  allowedOrigins = [
   process.env.FRONTEND_URL,
+  'http://localhost:8081',
+ ] .filter(Boolean);;
 
-  'http://localhost:3000',
-];
 
-app.use(cors({
-origin :function (origin, cb){
-  if(!origin) return cb(null , true); 
-  return cb ( null , allowedOrigins.includes(origin));
-} ,
-credentials :true, // needed  for cookies
+ app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow requests like Postman
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true, // allow cookies/sessions
 }));
+
+
 app.use(express.static("public"));
 
 //JSON and URL parsing
@@ -77,7 +83,9 @@ app.use('/medicine', medicineRoutes);
 app.use('/ocr', medicineRoutes);
 app.use('/history', historyRoutes);
 app.use('/forgetPassword',forgetPasswordRoutes);
-app.use('/admin',adminRoutes);
+
+
+
 
 
 

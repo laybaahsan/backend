@@ -15,7 +15,7 @@ router.post('/scan-ocr', isAuthenticated, validateImageData, checkInternet,scanM
 
   
 // Sirf Admin ko add/update/delete ki permission
-router.post("/", protect, adminOnly, addMedicine);
+router.post("/:name", protect, adminOnly, addMedicine);
 router.put("/:id", protect, adminOnly, updateMedicine);
 router.delete("/:id", protect, adminOnly, deleteMedicine);
 
