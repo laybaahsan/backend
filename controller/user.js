@@ -63,7 +63,7 @@ const signup = async (req,res)=>{
     const hashedPassword = await bcrypt.hash(password, 10);
 
     //validate roles
-    const validRoles = ['user','visitor','admin'];
+    const validRoles = ['user','visitor'];
     const userRole = validRoles.includes(role) ? role :'user'; 
          
     
@@ -184,7 +184,7 @@ const login = async (req, res) => {
        sameSite : 'strict'   ,
        maxAge : 60 * 60 * 1000 ,       //1 hr
     });
-     router.get('/home', showHome);
+     router.redirect('/home');
 
     }
 

@@ -25,7 +25,7 @@ const cors = require('cors');
 const  allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:8081',
- ] .filter(Boolean);;
+ ] .filter(Boolean);
 
 
  app.use(cors({
@@ -34,7 +34,8 @@ const  allowedOrigins = [
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
-      return callback(new Error("Not allowed by CORS"));
+ console.warn("Blocked CORS request from:", origin);
+      callback(new Error("CORS not allowed from this origin"));
     }
   },
   credentials: true, // allow cookies/sessions
